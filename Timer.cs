@@ -1,36 +1,46 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
-public class Timer : MonoBehaviour
+public class NewTimer : MonoBehaviour
 {
-    public float startTime;        // Основное время float
-    public float balltime;         // Для заполнения
-    public Text timeTex;           // Текст времени.
-    public Image timerImage;       // Шкала заполения;
+    public TimeSpan startTime = TimeSpan.FromMinutes(2); // Start time as a TimeSpan
+    public TimeSpan balltime;                            // Duration of time to fill the timer bar
+    public Text timeTex;                                 // Text displaying the time
+    public Text speedTex;                                // Text displaying the current speed
+    public Image timerImage;                             // Timer bar
 
     void Update()
     {
-        if (Input.GetKeyDown("t"))
-        {
-            startTime = 120f;
-            AgainTimer();
-        }
-        if (startTime > 0) startTime -= Time.deltaTime;         // Сам таймер
-        if (Input.GetKeyDown(KeyCode.Minus)) { 
-            startTime -= 60; balltime = startTime; }
-        if (Input.GetKeyDown(KeyCode.Equals)) { 
-            startTime += 60; balltime = startTime; }
+        // Subtract elapsed time from the start time
+        startTime -= TimeSpan.FromSeconds(Time.deltaTime);
+
+        // Adjust the start time based on user input
+        if (Input.GetKeyDown(KeyCode.Minus)) startTime -= TimeSpan.FromMinutes(1);
+        if (Input.GetKeyDown(KeyCode.Equals)) startTime += TimeSpan.FromMinutes(1);
+
         UpdateTimeText();
     }
-    public void UpdateTimeText()
+    void UpdateTimeText()
     {
-        if (startTime < 0) { startTime = 0; gameObject.SetActive(false); }
+        // Ensure the start time is not negative
+        if (startTime < TimeSpan.Zero)
+        {
+            startTime = TimeSpan.Zero;
+            gameObject.SetActive(false);
+        }
 
-        float minutes = Mathf.FloorToInt(startTime / 60);
-        float seconds = Mathf.FloorToInt(startTime % 60);
-        var normalizedValue = Mathf.Clamp(startTime / balltime, 0.0f, 1.0f);
+        // Update the timer bar
+        var normalizedValue = Mathf.Clamp((float)(startTime.TotalSeconds / balltime.TotalSeconds), 0f, 1f);
         timerImage.fillAmount = normalizedValue;
-        timeTex.text = string.Format("{0:00} : {1:00}", minutes, seconds);
+
+        // Update the time text
+        timeTex.text = string.Format("{0:mm} : {0:ss}", startTime);
     }
-    public void AgainTimer() { startTime = 121; balltime = startTime;}
+    public void AgainTimer()
+    {
+        startTime = TimeSpan.FromMinutes(2);
+        balltime = startTime;
+        Debug.Log(balltime);
+    }
 }
